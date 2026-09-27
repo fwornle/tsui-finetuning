@@ -1245,20 +1245,28 @@ Q  ↔  <b class="oo">E[g gᵀ]</b>                 <span class="cm">K-FAC outpu
   </div>
 
   <div class="callout pro">
-    <h3>Finding 4 · measured on GPT-2, because the toy&rsquo;s 2× needed checking</h3>
+    <h3>Finding 4 · measured on three models, because the toy&rsquo;s 2× needed checking</h3>
     <p>Everything above this point was synthetic. The obvious objection was that a real layer&rsquo;s key covariance might
     be close to isotropic in the directions the freedom occupies, in which case finding 2 collapses to a curiosity. So I
-    measured it on two models: <strong>GPT-2 small</strong> (124M, key dimension 3072, layers 3/6/9) and
-    <strong>GPT-2 XL</strong> (1.5B, key dimension 6400) — the latter being the model ROME and MEMIT were actually
+    measured it on three models: <strong>GPT-2 small</strong> (124M, key dimension 3072, layers 3/6/9),
+    <strong>GPT-2 XL</strong> (1.5B, key dimension 6400) — the model ROME and MEMIT were actually
     developed on, with layers 14 and 17 inside MEMIT&rsquo;s published critical range and layer 36 well
-    outside it as a control. Leakage is scored on keys from documents that contributed to neither the Gramian nor the
+    outside it as a control — and <strong>GPT-J 6B</strong> (16384-dimensional keys, layers 5/8/20), the model
+    MEMIT&rsquo;s own mass-editing results are reported on, with 5 and 8 inside its published critical range of
+    3&ndash;8 and layer 20 far outside it. Leakage is scored on keys from documents that contributed to neither the Gramian nor the
     constraints.</p>
-    <p><strong>It does not collapse, and it does not wash out at 12× the size.</strong> On GPT-2 XL, replacing MEMIT&rsquo;s
+    <p><strong>It does not collapse, and at 48× the size it gets stronger.</strong> Replacing MEMIT&rsquo;s
     covariance term with an identity matrix leaves the edit equally accurate and multiplies average leakage by
-    <b class="hh">6.6–11.9×</b>, against <b>7.9–11.4×</b> on GPT-2 small — the same effect, at the same size, in a key
-    space twice as wide. The anisotropy that drives it is scale-invariant in the way that matters: the
-    <em>fraction</em> of directions carrying the energy is <b class="gg">0.48–1.05%</b> on GPT-2 XL against
-    <b>0.57–0.90%</b> on GPT-2 small. Twelve times the parameters buys no isotropy at all.</p>
+    <b>7.9–11.4×</b> on GPT-2 small, <b class="hh">6.6–11.9×</b> on GPT-2 XL, and
+    <b class="hh">8.5–23.2×</b> on GPT-J 6B. The anisotropy that drives it is scale-invariant in the way
+    that matters: the <em>fraction</em> of directions carrying the energy is <b>0.57–0.90%</b> on GPT-2 small,
+    <b class="gg">0.48–1.05%</b> on GPT-2 XL and <b class="gg">0.12–1.56%</b> on GPT-J. Forty-eight times
+    the parameters buys no isotropy at all.</p>
+    <p>GPT-J also splits along the line the method itself draws. Its two layers inside MEMIT&rsquo;s critical range —
+    the layers the method actually writes into — give <b class="hh">17.7–23.2×</b>, the largest figures
+    anywhere on this page. Layer 20, far outside that range, gives <b>8.5×</b> and has a participation ratio of
+    <b>255.1</b> against roughly <b>19.8</b> at the edited layers: an order of magnitude less anisotropic,
+    and correspondingly less to gain. The effect is strongest exactly where editing happens.</p>
   </div>
 
   <div class="panel">
@@ -1271,6 +1279,7 @@ Q  ↔  <b class="oo">E[g gᵀ]</b>                 <span class="cm">K-FAC outpu
         <div class="seg">
           <button class="btn" id="mSmall" data-k="small">GPT-2 small</button>
           <button class="btn on" id="mXL" data-k="xl">GPT-2 XL</button>
+          <button class="btn" id="mGptj" data-k="gptj">GPT-J 6B</button>
         </div>
         <div class="seg">
           <button class="btn on" id="mRms" data-m="rms">average leakage</button>
@@ -1299,21 +1308,27 @@ Q  ↔  <b class="oo">E[g gᵀ]</b>                 <span class="cm">K-FAC outpu
 
   <div class="callout warn">
     <h3>What this does and does not establish</h3>
-    <p>It establishes that the covariance term in a published editor is not a formality: on both models, replacing it
+    <p>It establishes that the covariance term in a published editor is not a formality: on all three models, replacing it
     with the identity leaves the edit just as accurate and multiplies collateral leakage by <b class="hh">7.9–11.4×</b>
-    (GPT-2 small) and <b class="hh">6.6–11.9×</b> (GPT-2 XL). It also answers the question this page previously left open —
-    the effective conditioning of a real key Gramian is nowhere near 1. Across the six layers measured the
-    participation ratio runs <b>17.5–27.5 of 3072</b> on the small model and <b>30.8–66.9 of 6400</b> on XL, with a
-    single direction holding 11.8–23.1% of all the energy. Real activations are about as anisotropic as data gets,
+    (GPT-2 small), <b class="hh">6.6–11.9×</b> (GPT-2 XL) and <b class="hh">8.5–23.2×</b> (GPT-J 6B). It also
+    answers the question this page previously left open —
+    the effective conditioning of a real key Gramian is nowhere near 1. Across the nine layers measured the
+    participation ratio runs <b>17.5–27.5 of 3072</b> on the small model, <b>30.8–66.9 of 6400</b> on XL and
+    <b>19.8–255.1 of 16384</b> on GPT-J, with a
+    single direction holding 5.3–23.1% of all the energy. Real activations are about as anisotropic as data gets,
     and adding parameters does not make them isotropic.</p>
-    <p>It also rules out one alternative explanation. Layer 36 sits outside MEMIT&rsquo;s critical range, where no
-    editing method operates, and it behaves like the others — so this is a property of MLP key statistics in general,
-    not an artefact of the layers people happen to edit.</p>
+    <p>It also rules out one alternative explanation, with a wrinkle. Layer 36 of GPT-2 XL sits outside MEMIT&rsquo;s
+    critical range, where no editing method operates, and it behaves like the others — so this is a property of MLP key
+    statistics in general, not an artefact of the layers people happen to edit. GPT-J&rsquo;s layer 20 is the exception
+    that sharpens the rule: still 8.5×, still the same sign, but visibly flatter than the layers inside the
+    range. Depth changes how much there is to win; it does not change who wins.</p>
     <p>It does not establish a benchmark result. My edit targets are structurally realistic but synthetic — I make one
     real key emit what another real key emits, rather than running ROME&rsquo;s optimisation for a genuine fact — and
-    leakage onto held-out keys is a proxy for downstream damage, not a measurement of it. Both models are also far
-    smaller than today's frontier systems, though GPT-2 XL is the one ROME and MEMIT were themselves benchmarked on,
-    so it is not a toy. The honest claim is about the geometry, and
+    leakage onto held-out keys is a proxy for downstream damage, not a measurement of it. All three models are also
+    smaller than today's frontier systems, though GPT-2 XL and GPT-J are the two ROME and MEMIT were themselves
+    benchmarked on, so they are not toys. GPT-J&rsquo;s Gramian is also the thinnest estimate here, at
+    17.1 samples per key dimension against 30.3 and 26.9 for the GPT-2 runs — enough to rank the
+    methods, not enough to defend a third decimal place. The honest claim is about the geometry, and
     the geometry is unambiguous.</p>
   </div>
 
@@ -1346,31 +1361,36 @@ minimise  tr( Δ M Δᵀ )   subject to   Δ K = R<br><br>
     directions the freedom occupies, or only in the few enormous ones the constraints already pin down. Finding 4
     settles it. The setup, so the numbers can be argued with:</p>
     <ul>
-      <li><strong>Keys.</strong> The input to <span class="mono">mlp.c_proj</span> — the post-GELU activation, exactly
+      <li><strong>Keys.</strong> The input to the MLP down-projection — <span class="mono">mlp.c_proj</span> in GPT-2,
+      <span class="mono">mlp.fc_out</span> in GPT-J — the post-GELU activation, exactly
       the vector MEMIT calls a key. Dimension 3072 at layers 3/6/9 of GPT-2 small; dimension 6400 at layers
-      14/17/36 of GPT-2 XL.</li>
-      <li><strong>Gramian.</strong> The uncentered second moment over 93k tokens of Wikipedia for the small model and
-      172k for XL — the same statistic and the same source MEMIT uses, at a smaller sample size. The XL corpus was
-      enlarged deliberately so that samples per key dimension (26.9) stays comparable to the small run&rsquo;s (30.3),
-      rather than degrading with the larger dimension: a weaker result had to mean a weaker effect, not a worse-estimated
-      covariance.</li>
+      14/17/36 of GPT-2 XL; dimension 16384 at layers 5/8/20 of GPT-J 6B.</li>
+      <li><strong>Gramian.</strong> The uncentered second moment over 93k tokens of Wikipedia for the small model,
+      172k for XL and 280k for GPT-J — the same statistic and the same source MEMIT uses, at a smaller sample size.
+      The corpus was enlarged at each step so that samples per key dimension (30.3, then 26.9) would not simply degrade
+      with the growing dimension: a weaker result had to mean a weaker effect, not a worse-estimated covariance. At
+      16384 dimensions that stops being affordable and GPT-J runs at <b>17.1</b> samples per dimension — the
+      one place where the estimate behind a number on this page is thinner than the others, and worth holding against
+      it. MEMIT&rsquo;s own GPT-J covariance is estimated at a comparable ratio.</li>
       <li><strong>Split.</strong> Leakage is scored on every key the held-out documents produce — 1,728
-      of them for GPT-2 small, 3,168 for GPT-2 XL — from documents that contributed to neither the
+      of them for GPT-2 small, 3,168 for GPT-2 XL, 3,408 for GPT-J — from documents that contributed to neither the
       Gramian nor the constraints. Sampling noise in the Gramian can therefore only penalise the Gramian-weighted
       method, never flatter it — the measurement is conservative in the direction that matters.</li>
       <li><strong>Edit.</strong> Eight protected keys held exactly fixed, two new facts installed exactly, the residual
       built by making one real key emit what a different real key emits. Structurally realistic; not an actual
       ROME-optimised target.</li>
-      <li><strong>Robustness.</strong> The ratio holds across all six layers measured and both models, and is flat in
-      the ridge λ over every value tried — three orders of magnitude on GPT-2 small, two on XL, with the XL figures
-      stable to two decimal places. The two solutions' row spaces have a maximum principal angle of 90°, so they are
+      <li><strong>Robustness.</strong> The ratio holds across all nine layers measured and all three models, and is flat in
+      the ridge λ over every value tried — three orders of magnitude on GPT-2 small, two on XL and on GPT-J, with the XL
+      and GPT-J figures stable to two decimal places. The two solutions' row spaces have a maximum principal angle of 90°, so they are
       not small perturbations of one another.</li>
     </ul>
     <p>The diagnostic that answers the original question is the <strong>participation ratio</strong>,
     <span class="mono">(Σλ)² / Σλ²</span> — the honest count of how many directions carry the energy. It comes out at
-    17.5 to 27.5 out of 3072 on GPT-2 small and 30.8 to 66.9 out of 6400 on GPT-2 XL, with the top single direction
-    holding 18.1–23.1% and 11.8–17.7% respectively. As a fraction of the space available that is 0.57–0.90% against
-    0.48–1.05% — indistinguishable. Meanwhile 99% of the energy needs thousands of directions, so the tail is long and
+    17.5 to 27.5 out of 3072 on GPT-2 small, 30.8 to 66.9 out of 6400 on GPT-2 XL and 19.8 to 255.1 out of
+    16384 on GPT-J, with the top single direction
+    holding 18.1–23.1%, 11.8–17.7% and 5.3–22.4% respectively. As a fraction of the space available that is 0.57–0.90% against
+    0.48–1.05% and 0.12–1.56% — the two GPT-2 models indistinguishable, GPT-J spanning a wider band only
+    because its out-of-range layer 20 is genuinely flatter than the layers editors touch. Meanwhile 99% of the energy needs thousands of directions, so the tail is long and
     nearly flat. Both are true at once and not in tension: a few dozen directions dominate, and the last percent of the
     energy is smeared across the rest.</p>
   </div>
@@ -1547,8 +1567,8 @@ minimise  tr( <b class="oo">Q</b> Δ <b class="pp">C</b> Δᵀ )   subject to   
     <h3>Choose deliberately within the leftover freedom <span class="pill done">already done · unnamed</span></h3>
     <p>I went in expecting this to be the open one. It is not — but it is worth far more than I thought. On a real
     GPT-2 layer the choice within the freedom is worth <b>7.9–11.4× in leakage</b> onto unsampled knowledge (6.6–11.9× on
-    GPT-2 XL), at identical edit accuracy, and the multiplier is the anisotropy of the key Gramian, whose participation
-    ratio is 27.5 of 3072 and 66.9 of 6400.
+    GPT-2 XL, <b>8.5–23.2×</b> on GPT-J 6B), at identical edit accuracy, and the multiplier is the anisotropy of the key Gramian, whose participation
+    ratio is 27.5 of 3072, 66.9 of 6400 and 19.8 of 16384 at the layers MEMIT actually edits.
     The choice is nonetheless already being made correctly: MEMIT's covariance term <em>is</em> the
     weighted-minimum-norm selection rule, not the regulariser it is usually called. Tsui's move 4, performed without the
     vocabulary, and empirically load-bearing. The minimax refinement I expected on top of it measured 1% and is retired.</p>
@@ -1572,7 +1592,7 @@ minimise  tr( <b class="oo">Q</b> Δ <b class="pp">C</b> Δᵀ )   subject to   
     iterative LoRA where the fit is soft.</p>
     <p><strong>2 · Done, and it came back louder than expected.</strong> This slot used to read "measure the effective
     conditioning of a real layer, because the toy's 2× may not survive contact." It is now measured, in section 06: the
-    participation ratio is 27.5 of 3072 (and 66.9 of 6400 on GPT-2 XL), and MEMIT's covariance term is worth 7.9–11.4×/6.6–11.9× in leakage. The follow-up worth
+    participation ratio is 27.5 of 3072 (66.9 of 6400 on GPT-2 XL, 19.8 of 16384 at GPT-J&rsquo;s edited layers), and MEMIT's covariance term is worth 7.9–11.4× / 6.6–11.9× / 8.5–23.2× in leakage. The follow-up worth
     running is the one thing that measurement cannot settle — whether leakage onto held-out keys predicts the downstream
     generality scores that editing papers actually report. That needs a benchmark run, not linear algebra.</p>
     <p><strong>3 · Measure the reach, then fix MEMIT's coefficients.</strong> Forward passes only, no training. The
@@ -1588,9 +1608,8 @@ minimise  tr( <b class="oo">Q</b> Δ <b class="pp">C</b> Δᵀ )   subject to   
   were read directly; chapter bodies were not available, so the mechanism in section 01 is reconstructed from that
   structure plus the standard Sylvester literature. The cancellation in section 07 is derived here and agrees with the
   published K-FAC reading of the editing objective. Section 06's finding 4 is an original measurement: GPT-2 small,
-  and GPT-2 XL, 130k and
-  239k tokens of Wikipedia, key Gramians of
-  <span class="mono">mlp.c_proj</span> at six layers, leakage scored on held-out documents — the setup is spelled out at depth 3 and the numbers are embedded in this page. Every other
+  GPT-2 XL and GPT-J 6B, 130k, 239k and 389k tokens of Wikipedia, key Gramians of the MLP down-projection
+  (<span class="mono">mlp.c_proj</span>, <span class="mono">mlp.fc_out</span> on GPT-J) at nine layers, leakage scored on held-out documents — the setup is spelled out at depth 3 and the numbers are embedded in this page. Every other
   panel computes its own numbers in your browser; the two places where a shape is illustrative rather than measured are
   labelled as such, in section 08 and in the spectrum decay of section 04. The primer at depth 2 assumes linear algebra
   and no machine learning.</p>
@@ -3126,7 +3145,7 @@ if ('IntersectionObserver' in window && !RM){
 })();
 
 /* ══════════ 06b · the measured layers ══════════ */
-const MEASURED = {"small":{"name":"GPT-2 small","params":"124M","dim":3072,"nlayer":12,"effRank":27.5,"top":18.1,"spec":{"idx":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,21,22,23,24,26,27,29,30,32,34,36,38,40,42,45,47,50,53,56,59,62,66,70,74,78,82,87,91,97,102,108,114,120,127,134,141,149,158,166,176,185,196,207,218,230,243,256,271,286,302,318,336,355,374,395,417,440,465,491,518,547,577,609,643,678,716,756,798,842,888,938,990,1044,1102,1163,1228,1296,1368,1444,1524,1608,1697,1791,1890,1995,2106,2222,2345,2475,2612,2757,2910,3071],"lam":[19.4999,3.34528,2.30366,1.64037,1.59601,1.32845,1.13227,1.05769,0.999942,0.925133,0.875947,0.784104,0.722254,0.709657,0.663192,0.646091,0.624601,0.591563,0.572374,0.546821,0.495316,0.462957,0.45648,0.447519,0.423714,0.402975,0.381204,0.363127,0.346904,0.326765,0.311913,0.302895,0.292884,0.281152,0.260907,0.251449,0.239866,0.228364,0.221146,0.211447,0.201815,0.193857,0.181913,0.172806,0.164324,0.157625,0.150888,0.144646,0.13568,0.128028,0.121912,0.115483,0.110947,0.104972,0.100401,0.0956787,0.0909402,0.0861834,0.0825944,0.078763,0.0752053,0.0713985,0.0677915,0.0645788,0.061619,0.0586374,0.0556089,0.0529532,0.0502477,0.047645,0.0458854,0.043579,0.0413595,0.0393824,0.0374045,0.0355608,0.0338292,0.0321625,0.0306137,0.029036,0.0275672,0.0262206,0.0248585,0.02358,0.0223314,0.0211388,0.0200075,0.0189473,0.0179645,0.0170322,0.0160956,0.0151986,0.0143744,0.0135616,0.0127806,0.0120577,0.0113625,0.0106734,0.0100219,0.00941011,0.0088105,0.00822886,0.00767293,0.00713972,0.0066195,0.0061063,0.00560226,0.00510099,0.00459961,0.00407586,0.00346938,0.00256858,0.000187234],"cum":[0.18144,0.21256,0.234,0.24926,0.26411,0.27647,0.287,0.29685,0.30615,0.31476,0.32291,0.3302,0.33692,0.34353,0.3497,0.35571,0.36152,0.36702,0.37235,0.37744,0.38686,0.39117,0.39541,0.39958,0.40753,0.41128,0.41842,0.4218,0.42829,0.43445,0.44036,0.44605,0.45155,0.45685,0.46434,0.46903,0.47584,0.48234,0.48858,0.49453,0.50023,0.50759,0.51453,0.5211,0.52733,0.53329,0.54045,0.54589,0.55363,0.55975,0.56672,0.57329,0.57959,0.58657,0.59324,0.5996,0.60652,0.61393,0.6202,0.62766,0.63407,0.64155,0.64863,0.65539,0.6624,0.66963,0.67653,0.68411,0.69132,0.6986,0.70556,0.71304,0.72052,0.72765,0.73515,0.74261,0.75002,0.75768,0.76526,0.77274,0.78036,0.78785,0.79543,0.80307,0.81053,0.81821,0.82587,0.83347,0.84102,0.8485,0.85619,0.86376,0.87118,0.87871,0.88618,0.89369,0.90108,0.90845,0.91576,0.92299,0.9301,0.93715,0.9441,0.95091,0.95763,0.96419,0.9705,0.97662,0.98248,0.98801,0.99311,0.99745,1.0]},"tokens":93184,"held":1728,"rows":[{"layer":3,"Amax":3.1,"Arms":3.98,"Bmax":3.7,"Brms":9.57},{"layer":6,"Amax":3.2,"Arms":6.92,"Bmax":3.55,"Brms":11.39},{"layer":9,"Amax":1.72,"Arms":4.93,"Bmax":1.73,"Brms":7.88}]},"xl":{"name":"GPT-2 XL","params":"1.5B","dim":6400,"nlayer":48,"effRank":66.9,"top":11.8,"spec":{"idx":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,22,23,24,26,28,29,31,33,35,37,40,42,45,48,50,54,57,60,64,68,72,77,81,86,92,97,103,110,116,123,131,139,147,156,166,176,187,198,210,223,237,251,266,282,300,318,337,357,379,402,427,453,480,509,540,573,608,645,684,725,769,816,865,918,973,1032,1095,1161,1232,1307,1386,1470,1559,1653,1754,1860,1973,2092,2219,2354,2496,2648,2808,2978,3159,3350,3553,3768,3997,4239,4496,4768,5057,5364,5689,6033,6399],"lam":[20.7934,2.941,1.63367,1.25006,1.02612,0.899039,0.856638,0.743194,0.664974,0.650233,0.613675,0.567296,0.55025,0.526513,0.498979,0.486337,0.450376,0.442518,0.42954,0.420234,0.414263,0.397985,0.379764,0.376725,0.361976,0.351256,0.347126,0.331083,0.313619,0.30497,0.291277,0.276819,0.266842,0.252513,0.242281,0.237433,0.224168,0.217909,0.208525,0.202274,0.19327,0.186311,0.178269,0.169922,0.163905,0.157032,0.151234,0.144336,0.137735,0.134633,0.12917,0.124427,0.118965,0.115485,0.110406,0.105575,0.101513,0.0979394,0.0942213,0.0906225,0.0872811,0.0839643,0.0809079,0.0778628,0.0748783,0.0718901,0.0692922,0.0667966,0.0643305,0.061871,0.0596851,0.0571327,0.0552223,0.0530601,0.0511218,0.0491295,0.0472633,0.0454518,0.0436735,0.0419746,0.0403672,0.0388591,0.037273,0.035867,0.0344664,0.0331201,0.0318297,0.0305264,0.0292829,0.0281123,0.0269628,0.025814,0.0247532,0.0237208,0.0226861,0.0216928,0.020732,0.0197953,0.0189011,0.0180066,0.017137,0.0162978,0.0154636,0.0146529,0.0138628,0.0130817,0.0123091,0.0115487,0.0107908,0.0100363,0.0092857,0.00853261,0.00776721,0.00697865,0.00614189,0.00520994,0.00401405,0.000290532],"cum":[0.11832,0.13506,0.14435,0.15147,0.15731,0.16242,0.1673,0.17153,0.17531,0.17901,0.1825,0.18573,0.18886,0.19186,0.1947,0.19746,0.20003,0.20254,0.20499,0.20738,0.20974,0.21434,0.2165,0.21864,0.2228,0.22681,0.22879,0.23261,0.23623,0.23973,0.24308,0.2479,0.25096,0.25531,0.2595,0.26222,0.26745,0.2712,0.27483,0.27949,0.28398,0.28827,0.29343,0.29737,0.30211,0.30758,0.31194,0.31697,0.32258,0.32724,0.33247,0.33823,0.34375,0.34906,0.35481,0.36094,0.36681,0.37303,0.37903,0.38532,0.39189,0.39869,0.40524,0.412,0.41895,0.42646,0.43368,0.44103,0.44848,0.45638,0.46432,0.47262,0.48092,0.48923,0.49781,0.50665,0.51569,0.52491,0.53429,0.54378,0.55339,0.5633,0.57348,0.58367,0.59427,0.60483,0.61572,0.62689,0.63811,0.6497,0.66145,0.6733,0.68538,0.69765,0.71005,0.72279,0.73558,0.74861,0.7617,0.77503,0.78852,0.80202,0.81575,0.82946,0.84324,0.85711,0.8709,0.88467,0.89832,0.91189,0.92519,0.93821,0.95082,0.96294,0.9744,0.9849,0.99399,1.0]},"tokens":172032,"held":3168,"rows":[{"layer":14,"Amax":2.28,"Arms":5.9,"Bmax":3.11,"Brms":11.84},{"layer":17,"Amax":3.71,"Arms":3.38,"Bmax":3.87,"Brms":6.56},{"layer":36,"Amax":3.67,"Arms":7.28,"Bmax":5.77,"Brms":11.92}]}};
+const MEASURED = {"small":{"name":"GPT-2 small","params":"124M","proj":"mlp.c_proj","dim":3072,"nlayer":12,"effRank":27.5,"top":18.1,"specLayer":6,"spec":{"idx":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,21,22,23,24,26,27,29,30,32,34,36,38,40,42,45,47,50,53,56,59,62,66,70,74,78,82,87,91,97,102,108,114,120,127,134,141,149,158,166,176,185,196,207,218,230,243,256,271,286,302,318,336,355,374,395,417,440,465,491,518,547,577,609,643,678,716,756,798,842,888,938,990,1044,1102,1163,1228,1296,1368,1444,1524,1608,1697,1791,1890,1995,2106,2222,2345,2475,2612,2757,2910,3071],"lam":[19.4999,3.34528,2.30366,1.64037,1.59601,1.32845,1.13227,1.05769,0.999942,0.925133,0.875947,0.784104,0.722254,0.709657,0.663192,0.646091,0.624601,0.591563,0.572374,0.546821,0.495316,0.462957,0.45648,0.447519,0.423714,0.402975,0.381204,0.363127,0.346904,0.326765,0.311913,0.302895,0.292884,0.281152,0.260907,0.251449,0.239866,0.228364,0.221146,0.211447,0.201815,0.193857,0.181913,0.172806,0.164324,0.157625,0.150888,0.144646,0.13568,0.128028,0.121912,0.115483,0.110947,0.104972,0.100401,0.0956787,0.0909402,0.0861834,0.0825944,0.078763,0.0752053,0.0713985,0.0677915,0.0645788,0.061619,0.0586374,0.0556089,0.0529532,0.0502477,0.047645,0.0458854,0.043579,0.0413595,0.0393824,0.0374045,0.0355608,0.0338292,0.0321625,0.0306137,0.029036,0.0275672,0.0262206,0.0248585,0.02358,0.0223314,0.0211388,0.0200075,0.0189473,0.0179645,0.0170322,0.0160956,0.0151986,0.0143744,0.0135616,0.0127806,0.0120577,0.0113625,0.0106734,0.0100219,0.00941011,0.0088105,0.00822886,0.00767293,0.00713972,0.0066195,0.0061063,0.00560226,0.00510099,0.00459961,0.00407586,0.00346938,0.00256858,0.000187234],"cum":[0.18144,0.21256,0.234,0.24926,0.26411,0.27647,0.287,0.29685,0.30615,0.31476,0.32291,0.3302,0.33692,0.34353,0.3497,0.35571,0.36152,0.36702,0.37235,0.37744,0.38686,0.39117,0.39541,0.39958,0.40753,0.41128,0.41842,0.4218,0.42829,0.43445,0.44036,0.44605,0.45155,0.45685,0.46434,0.46903,0.47584,0.48234,0.48858,0.49453,0.50023,0.50759,0.51453,0.5211,0.52733,0.53329,0.54045,0.54589,0.55363,0.55975,0.56672,0.57329,0.57959,0.58657,0.59324,0.5996,0.60652,0.61393,0.6202,0.62766,0.63407,0.64155,0.64863,0.65539,0.6624,0.66963,0.67653,0.68411,0.69132,0.6986,0.70556,0.71304,0.72052,0.72765,0.73515,0.74261,0.75002,0.75768,0.76526,0.77274,0.78036,0.78785,0.79543,0.80307,0.81053,0.81821,0.82587,0.83347,0.84102,0.8485,0.85619,0.86376,0.87118,0.87871,0.88618,0.89369,0.90108,0.90845,0.91576,0.92299,0.9301,0.93715,0.9441,0.95091,0.95763,0.96419,0.9705,0.97662,0.98248,0.98801,0.99311,0.99745,1.0]},"tokens":93184,"perDim":30.3,"rows":[{"layer":3,"Amax":3.1,"Arms":3.98,"Bmax":3.7,"Brms":9.57,"effRank":17.5,"top":23.1},{"layer":6,"Amax":3.2,"Arms":6.92,"Bmax":3.55,"Brms":11.39,"effRank":27.5,"top":18.1},{"layer":9,"Amax":1.72,"Arms":4.93,"Bmax":1.73,"Brms":7.88,"effRank":24.9,"top":18.9}]},"xl":{"name":"GPT-2 XL","params":"1.5B","proj":"mlp.c_proj","dim":6400,"nlayer":48,"effRank":66.9,"top":11.8,"specLayer":17,"spec":{"idx":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,22,23,24,26,28,29,31,33,35,37,40,42,45,48,50,54,57,60,64,68,72,77,81,86,92,97,103,110,116,123,131,139,147,156,166,176,187,198,210,223,237,251,266,282,300,318,337,357,379,402,427,453,480,509,540,573,608,645,684,725,769,816,865,918,973,1032,1095,1161,1232,1307,1386,1470,1559,1653,1754,1860,1973,2092,2219,2354,2496,2648,2808,2978,3159,3350,3553,3768,3997,4239,4496,4768,5057,5364,5689,6033,6399],"lam":[20.7934,2.941,1.63367,1.25006,1.02612,0.899039,0.856638,0.743194,0.664974,0.650233,0.613675,0.567296,0.55025,0.526513,0.498979,0.486337,0.450376,0.442518,0.42954,0.420234,0.414263,0.397985,0.379764,0.376725,0.361976,0.351256,0.347126,0.331083,0.313619,0.30497,0.291277,0.276819,0.266842,0.252513,0.242281,0.237433,0.224168,0.217909,0.208525,0.202274,0.19327,0.186311,0.178269,0.169922,0.163905,0.157032,0.151234,0.144336,0.137735,0.134633,0.12917,0.124427,0.118965,0.115485,0.110406,0.105575,0.101513,0.0979394,0.0942213,0.0906225,0.0872811,0.0839643,0.0809079,0.0778628,0.0748783,0.0718901,0.0692922,0.0667966,0.0643305,0.061871,0.0596851,0.0571327,0.0552223,0.0530601,0.0511218,0.0491295,0.0472633,0.0454518,0.0436735,0.0419746,0.0403672,0.0388591,0.037273,0.035867,0.0344664,0.0331201,0.0318297,0.0305264,0.0292829,0.0281123,0.0269628,0.025814,0.0247532,0.0237208,0.0226861,0.0216928,0.020732,0.0197953,0.0189011,0.0180066,0.017137,0.0162978,0.0154636,0.0146529,0.0138628,0.0130817,0.0123091,0.0115487,0.0107908,0.0100363,0.0092857,0.00853261,0.00776721,0.00697865,0.00614189,0.00520994,0.00401405,0.000290532],"cum":[0.11832,0.13506,0.14435,0.15147,0.15731,0.16242,0.1673,0.17153,0.17531,0.17901,0.1825,0.18573,0.18886,0.19186,0.1947,0.19746,0.20003,0.20254,0.20499,0.20738,0.20974,0.21434,0.2165,0.21864,0.2228,0.22681,0.22879,0.23261,0.23623,0.23973,0.24308,0.2479,0.25096,0.25531,0.2595,0.26222,0.26745,0.2712,0.27483,0.27949,0.28398,0.28827,0.29343,0.29737,0.30211,0.30758,0.31194,0.31697,0.32258,0.32724,0.33247,0.33823,0.34375,0.34906,0.35481,0.36094,0.36681,0.37303,0.37903,0.38532,0.39189,0.39869,0.40524,0.412,0.41895,0.42646,0.43368,0.44103,0.44848,0.45638,0.46432,0.47262,0.48092,0.48923,0.49781,0.50665,0.51569,0.52491,0.53429,0.54378,0.55339,0.5633,0.57348,0.58367,0.59427,0.60483,0.61572,0.62689,0.63811,0.6497,0.66145,0.6733,0.68538,0.69765,0.71005,0.72279,0.73558,0.74861,0.7617,0.77503,0.78852,0.80202,0.81575,0.82946,0.84324,0.85711,0.8709,0.88467,0.89832,0.91189,0.92519,0.93821,0.95082,0.96294,0.9744,0.9849,0.99399,1.0]},"tokens":172032,"perDim":26.9,"rows":[{"layer":14,"Amax":2.28,"Arms":5.9,"Bmax":3.11,"Brms":11.84,"effRank":46.6,"top":14.3},{"layer":17,"Amax":3.71,"Arms":3.38,"Bmax":3.87,"Brms":6.56,"effRank":66.9,"top":11.8},{"layer":36,"Amax":3.67,"Arms":7.28,"Bmax":5.77,"Brms":11.92,"effRank":30.8,"top":17.7}]},"gptj":{"name":"GPT-J","params":"6B","proj":"mlp.fc_out","dim":16384,"nlayer":28,"effRank":27.7,"top":18.9,"specLayer":8,"spec":{"idx":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,17,18,19,20,22,23,25,27,29,31,33,35,37,40,43,46,49,52,56,60,64,68,73,78,83,88,94,101,108,115,123,131,140,150,160,171,182,194,208,222,237,253,270,288,307,328,350,374,399,426,455,485,518,553,590,630,673,718,766,818,873,932,995,1062,1133,1210,1291,1378,1471,1570,1676,1789,1909,2037,2175,2321,2477,2644,2822,3012,3215,3431,3662,3909,4172,4453,4752,5072,5414,5778,6167,6582,7025,7498,8003,8541,9116,9730,10384,11083,11829,12625,13475,14382,15350,16383],"lam":[81.659,3.71279,3.31917,2.50835,2.40708,1.97779,1.827,1.57567,1.41943,1.37589,1.27727,1.25621,1.15012,1.11542,1.03284,1.01204,0.929381,0.898355,0.883357,0.871003,0.815687,0.789367,0.754505,0.699778,0.665421,0.652264,0.625858,0.602988,0.579706,0.55449,0.5267,0.503794,0.476616,0.455955,0.437549,0.416351,0.393817,0.37846,0.362616,0.343674,0.32928,0.317599,0.305808,0.290005,0.277057,0.266242,0.252916,0.241456,0.229346,0.217792,0.208909,0.195979,0.188466,0.179952,0.170976,0.163433,0.155358,0.148446,0.141846,0.135235,0.129227,0.123121,0.117145,0.111626,0.106488,0.101539,0.0968492,0.0923592,0.0879951,0.0837274,0.0799228,0.0762001,0.0724443,0.0691589,0.0658279,0.0627591,0.0598395,0.0569484,0.0543297,0.0517633,0.049328,0.0469648,0.0447522,0.0426506,0.0406462,0.0386788,0.0368644,0.035099,0.0334298,0.0318391,0.0303121,0.0288626,0.0274649,0.0261285,0.0248532,0.0236085,0.0224346,0.0213139,0.0202364,0.0191989,0.0182027,0.0172354,0.0163064,0.0154129,0.0145453,0.0137045,0.0128904,0.0120982,0.0113306,0.0105796,0.0098457,0.00912634,0.00842256,0.00772539,0.00703995,0.00635547,0.00567343,0.00498332,0.00427307,0.00350952,0.00260254,0.000308077],"cum":[0.18876,0.19734,0.20501,0.21081,0.21637,0.22095,0.22517,0.22881,0.23209,0.23527,0.23822,0.24113,0.24379,0.24637,0.24875,0.25109,0.25548,0.25756,0.2596,0.26161,0.26547,0.26729,0.27081,0.2741,0.27719,0.28021,0.28313,0.28597,0.28867,0.29257,0.29629,0.29982,0.30317,0.3064,0.3105,0.31442,0.31813,0.32169,0.32595,0.33003,0.3339,0.33763,0.34194,0.34676,0.35132,0.3557,0.36048,0.36504,0.36992,0.37508,0.37998,0.38512,0.39001,0.39509,0.40076,0.40617,0.41169,0.41731,0.42301,0.42876,0.43455,0.44067,0.44676,0.45309,0.45938,0.46587,0.47251,0.47906,0.48594,0.49289,0.49988,0.50709,0.51447,0.52183,0.52931,0.53704,0.54483,0.55279,0.56088,0.56909,0.57737,0.58594,0.59452,0.6033,0.61225,0.62132,0.63057,0.63997,0.64947,0.65912,0.66902,0.679,0.68915,0.69948,0.70996,0.7206,0.7314,0.74232,0.7534,0.76466,0.77602,0.78752,0.7991,0.81083,0.82267,0.83454,0.84649,0.85847,0.87046,0.88243,0.89435,0.90614,0.91779,0.92924,0.9404,0.95121,0.96157,0.97137,0.98046,0.98863,0.9955,1.0]},"tokens":280064,"perDim":17.1,"rows":[{"layer":5,"Amax":3.56,"Arms":9.07,"Bmax":4.9,"Brms":23.18,"effRank":19.8,"top":22.4},{"layer":8,"Amax":1.96,"Arms":7.21,"Bmax":4.24,"Brms":17.73,"effRank":27.7,"top":18.9},{"layer":20,"Amax":2.41,"Arms":5.45,"Bmax":3.31,"Brms":8.5,"effRank":255.1,"top":5.3}]}};
 (function(){
   const host = $('#mSpec'); if (!host) return;
   let mode = 'rms', key = 'xl';
@@ -3193,12 +3212,14 @@ const MEASURED = {"small":{"name":"GPT-2 small","params":"124M","dim":3072,"nlay
     $('#mGap').innerHTML = svg(340, 198, g, 8);
   }
   function draw(){
-    const M = MEASURED[key], O = MEASURED[key === 'xl' ? 'small' : 'xl'];
+    const M = MEASURED[key];
+    const others = Object.keys(MEASURED).filter(k => k !== key).map(k => MEASURED[k]);
     spec(M); gaps(M);
     const bs = M.rows.map(r => mode === 'rms' ? r.Brms : r.Bmax);
     const lo = Math.min.apply(null, bs), hi = Math.max.apply(null, bs);
-    const os = O.rows.map(r => mode === 'rms' ? r.Brms : r.Bmax);
-    $('#mTag').textContent = M.name + ' · ' + M.params + ' · mlp.c_proj · key dimension ' + M.dim +
+    const span = m => { const v = m.rows.map(r => mode === 'rms' ? r.Brms : r.Bmax);
+      return [Math.min.apply(null, v), Math.max.apply(null, v)]; };
+    $('#mTag').textContent = M.name + ' · ' + M.params + ' · ' + M.proj + ' · key dimension ' + M.dim +
       ' · ' + (M.tokens / 1000).toFixed(0) + 'k tokens · measured, not modelled';
     $('#msER').textContent = M.effRank;
     $('#msERd').textContent = 'of ' + M.dim + ' dimensions';
@@ -3212,17 +3233,27 @@ const MEASURED = {"small":{"name":"GPT-2 small","params":"124M","dim":3072,"nlay
       'comparison from finding 2, Euclidean against Gramian-weighted. <span class="hh">Red</span> is the blunter and more useful one: ' +
       'MEMIT exactly as published against MEMIT with its <span class="mono">K₀K₀ᵀ</span> swapped for an identity matrix. Both install ' +
       'the edit to the same accuracy; the published version leaks <b class="hh">' + lo.toFixed(1) + '–' + hi.toFixed(1) + '×</b> less. ' +
-      'Switch to <b>' + O.name + '</b> (' + O.params + ', key dimension ' + O.dim + ') and the same experiment gives ' +
-      Math.min.apply(null, os).toFixed(1) + '–' + Math.max.apply(null, os).toFixed(1) + '× — ' +
-      (Math.abs(Math.max.apply(null, os) - hi) / Math.max(hi, 1) < 0.45
-        ? 'the effect does not wash out with scale.'
-        : 'the effect changes in size with scale but not in sign.');
+      'Switch models above and the same experiment gives ' +
+      others.map(o => { const s2 = span(o);
+        return '<b>' + o.name + '</b> (' + o.params + ', key dimension ' + o.dim + ') ' +
+               s2[0].toFixed(1) + '–' + s2[1].toFixed(1) + '×'; }).join(' and ') + '. ' +
+      (function(){
+        const all = Object.keys(MEASURED).map(k => span(MEASURED[k]));
+        const worst = Math.min.apply(null, all.map(a => a[0]));
+        const best  = Math.max.apply(null, all.map(a => a[1]));
+        return 'Across all three the published version wins everywhere — never less than <b class="gg">' +
+               worst.toFixed(1) + '×</b>, and as much as <b class="hh">' + best.toFixed(1) +
+               '×</b> — so the effect does not wash out with scale. It is largest on the biggest model, ' +
+               'not smallest.';
+      })();
   }
-  [['#mRms','rms','mode'],['#mMax','max','mode'],['#mSmall','small','key'],['#mXL','xl','key']].forEach(e =>
+  [['#mRms','rms','mode'],['#mMax','max','mode'],
+   ['#mSmall','small','key'],['#mXL','xl','key'],['#mGptj','gptj','key']].forEach(e =>
     $(e[0]).addEventListener('click', () => {
       if (e[2] === 'mode') mode = e[1]; else key = e[1];
       $('#mRms').classList.toggle('on', mode === 'rms'); $('#mMax').classList.toggle('on', mode === 'max');
       $('#mSmall').classList.toggle('on', key === 'small'); $('#mXL').classList.toggle('on', key === 'xl');
+      $('#mGptj').classList.toggle('on', key === 'gptj');
       draw(); }));
   themeHooks.push(draw); draw();
 })();
