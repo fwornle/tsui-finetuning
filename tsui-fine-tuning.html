@@ -290,6 +290,105 @@ body.depth-2 .hint,body.depth-3 .hint{display:none}
 .pill.open{color:var(--free);background:var(--free-d)}
 .pill.done{color:var(--pro);background:var(--pro-d)}
 
+
+/* ══ phone layout ══════════════════════════════════════════════════════════
+   Measured at 390x844 before any of this existed: the nav pills wrapped to
+   382px (45% of a screen), the three legends added 312px more, and the hero
+   ran to 1.7 screenfuls before a word of content. The fixed .controls floated
+   over the headline. So on a narrow screen the chrome moves into one drawer
+   and the legends collapse behind a disclosure.
+   The wide diagrams were the other half of the problem: an svg authored at
+   viewBox 700 and squashed into 316px renders its 9px labels at 4px. They now
+   scroll sideways at a legible minimum instead of shrinking to nothing. */
+.burger{display:none}
+.drawer,.scrim{display:none}
+/* These three exist only for the narrow layout. Without a base rule a <button>
+   and a <span> fall back to their default display and show up on desktop — the
+   legend toggles did exactly that, as stray pills above every always-open key.
+   They are also left behind after a resize from narrow to wide, so hiding them
+   here rather than only unsetting them in the media query is what makes the
+   resize round-trip clean. */
+.legendToggle,.dhint{display:none}
+@media(max-width:760px){
+  .controls{display:none}
+  .hero .toc{display:none}
+  /* ...but .controls is MOVED into the drawer, not duplicated, so the same
+     element has to come back to life there — stripped of its fixed-pill chrome. */
+  .drawer .controls{
+    display:flex;flex-direction:column;align-items:stretch;gap:10px;
+    position:static;padding:0;border:0;border-radius:0;
+    background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;
+  }
+  .drawer .controls .btn{border-color:var(--line2);background:var(--inset)}
+  .drawer .controls .btn.on{background:var(--free-d);border-color:var(--free);color:var(--free)}
+  .burger{
+    display:flex;align-items:center;justify-content:center;
+    position:fixed;z-index:70;
+    top:calc(10px + env(safe-area-inset-top,0px));right:10px;
+    width:44px;height:44px;                      /* 44: the tap target, not the glyph */
+    font-size:17px;line-height:1;cursor:pointer;
+    color:var(--ink);background:color-mix(in srgb, var(--panel) 90%, transparent);
+    border:1px solid var(--line2);border-radius:12px;
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    box-shadow:0 4px 16px rgba(15,23,42,.22);
+  }
+  .scrim{
+    display:block;position:fixed;inset:0;z-index:71;
+    background:rgba(4,7,12,.55);opacity:0;pointer-events:none;transition:opacity .22s ease;
+  }
+  .scrim.open{opacity:1;pointer-events:auto}
+  .drawer{
+    display:flex;flex-direction:column;gap:18px;
+    position:fixed;z-index:72;top:0;right:0;
+    width:min(86vw,320px);height:100%;
+    padding:calc(18px + env(safe-area-inset-top,0px)) 18px calc(18px + env(safe-area-inset-bottom,0px));
+    background:var(--panel);border-left:1px solid var(--line2);
+    box-shadow:-14px 0 40px rgba(4,7,12,.45);
+    overflow-y:auto;-webkit-overflow-scrolling:touch;
+    transform:translateX(100%);transition:transform .24s ease;
+  }
+  .drawer.open{transform:none}
+  @media(prefers-reduced-motion:reduce){.drawer,.scrim{transition:none}}
+  .drawer .dTitle{
+    font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--faint);margin-bottom:9px;display:block;
+  }
+  .drawer .dClose{align-self:flex-end;margin:-4px -4px 0 0}
+  .drawer .toc{display:flex;flex-direction:column;gap:6px;margin:0}
+  .drawer .toc button{
+    text-align:left;border-radius:8px;padding:10px 13px;font-size:12px;
+    white-space:normal;line-height:1.35;
+  }
+  .drawer .depthWrap{flex-wrap:wrap;gap:9px}
+  .drawer .depthWrap .seg{flex:1}
+  .drawer .depthWrap .seg .btn{flex:1;padding:9px 0;text-align:center}
+  .drawer #themeBtn{width:100%;text-align:left;padding:10px 13px}
+
+  /* legends fold away — the diagram is the point, the key is a reference */
+  .legendToggle{
+    display:inline-flex;align-items:center;gap:7px;margin-top:12px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.06em;
+    color:var(--dim);background:var(--inset);
+    border:1px solid var(--line2);border-radius:999px;padding:6px 13px;cursor:pointer;
+  }
+  .legendToggle::after{content:"▾";font-size:9px;transition:transform .18s ease}
+  .legendToggle[aria-expanded=true]::after{transform:rotate(180deg)}
+  .legend.foldable:not(.open){display:none}
+  .legend.foldable{margin-top:10px}
+
+  /* a squashed diagram is not a responsive diagram */
+  .dscroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;margin-inline:-2px;padding-bottom:2px}
+  .dscroll.wide>*>svg,.dscroll.wide>canvas{min-width:var(--dmin,560px)}
+  .dscroll::after{content:""}
+  .dhint{
+    font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--faint);margin-top:6px;display:block;
+  }
+  .hero h1 .sub{max-width:none}
+  .byline{text-align:left}
+}
+
 footer{padding:48px 0 70px;border-top:1px solid var(--line);color:var(--faint);font-size:13px}
 footer a{color:var(--dim)}
 footer .refs{font-family:var(--mono);font-size:11.5px;line-height:2;margin-top:14px;column-width:320px;column-gap:28px}
@@ -305,6 +404,15 @@ footer .refs{font-family:var(--mono);font-size:11.5px;line-height:2;margin-top:1
     </div>
   </div>
 </div>
+
+<button class="burger" id="burger" aria-label="menu: sections, depth and theme"
+        aria-expanded="false" aria-controls="drawer">☰</button>
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-label="sections, depth and theme">
+  <button class="btn dClose" id="drawerClose" aria-label="close menu">✕ close</button>
+  <div id="drawerSettings"><span class="dTitle">display</span></div>
+  <div id="drawerNav"><span class="dTitle">sections</span></div>
+</aside>
 
 <div class="wrap">
 
@@ -3256,6 +3364,114 @@ const MEASURED = {"small":{"name":"GPT-2 small","params":"124M","proj":"mlp.c_pr
       $('#mGptj').classList.toggle('on', key === 'gptj');
       draw(); }));
   themeHooks.push(draw); draw();
+})();
+
+/* ══════════ phone layout · one drawer, folded legends, scrollable diagrams ══════════
+   The narrow branch MOVES the existing .controls and .toc into the drawer rather
+   than cloning them, so every handler already bound by id keeps working on the one
+   instance — and moves them back when the window widens again. */
+(function(){
+  const NARROW = window.matchMedia('(max-width: 760px)');
+  const burger = $('#burger'), drawer = $('#drawer'), scrim = $('#scrim'), closeBtn = $('#drawerClose');
+  const dSet = $('#drawerSettings'), dNav = $('#drawerNav');
+  const controls = document.querySelector('.controls'), toc = document.querySelector('.hero .toc');
+  if (!burger || !drawer || !controls || !toc) return;
+  // where they live on a wide screen, so the move is reversible
+  const home = [[controls, controls.parentNode, controls.nextSibling],
+                [toc, toc.parentNode, toc.nextSibling]];
+
+  let open = false;
+  function setOpen(v){
+    open = v && NARROW.matches;
+    drawer.classList.toggle('open', open);
+    scrim.classList.toggle('open', open);
+    burger.setAttribute('aria-expanded', String(open));
+    // hidden must come off before the transform animates, and go back on after
+    if (open){ drawer.hidden = false; scrim.hidden = false; }
+    // A closed drawer is only translated offscreen, so it keeps its box and can
+    // still be tabbed into. inert takes it out of the tab order and the a11y
+    // tree without the display:none that would kill the slide transition.
+    drawer.inert = !open;
+    document.body.style.overflow = open ? 'hidden' : '';
+    if (open) (toc.querySelector('button') || closeBtn).focus({preventScroll:true});
+    else if (document.activeElement && drawer.contains(document.activeElement)) burger.focus({preventScroll:true});
+  }
+  function place(){
+    if (NARROW.matches){
+      if (!dSet.contains(controls)) dSet.appendChild(controls);
+      if (!dNav.contains(toc)) dNav.appendChild(toc);
+      drawer.hidden = false; scrim.hidden = false; drawer.inert = !open;
+    } else {
+      home.forEach(([el, parent, next]) => {
+        if (el.parentNode !== parent) parent.insertBefore(el, next && next.parentNode === parent ? next : null);
+      });
+      setOpen(false);
+      drawer.hidden = true; scrim.hidden = true; drawer.inert = false;
+      document.body.style.overflow = '';
+    }
+    scheduleFit(true);
+  }
+  burger.addEventListener('click', () => setOpen(!open));
+  closeBtn.addEventListener('click', () => setOpen(false));
+  scrim.addEventListener('click', () => setOpen(false));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && open) setOpen(false); });
+  // picking a section is the one action that should also dismiss the drawer
+  drawer.addEventListener('click', e => { if (e.target.closest('.toc button[data-target]')) setOpen(false); });
+  NARROW.addEventListener('change', place);
+  place();
+
+  /* legends: a disclosure on a phone, always-on above it */
+  document.querySelectorAll('.legend').forEach((lg, i) => {
+    if (lg.classList.contains('foldable')) return;
+    lg.classList.add('foldable');
+    const id = 'legend' + i;
+    lg.id = id;
+    const t = document.createElement('button');
+    t.type = 'button'; t.className = 'legendToggle';
+    t.setAttribute('aria-expanded', 'false'); t.setAttribute('aria-controls', id);
+    t.textContent = 'legend · ' + lg.querySelectorAll('span').length + ' keys';
+    lg.parentNode.insertBefore(t, lg);
+    t.addEventListener('click', () => {
+      const now = !lg.classList.contains('open');
+      lg.classList.toggle('open', now);
+      t.setAttribute('aria-expanded', String(now));
+    });
+  });
+
+  /* diagrams: scroll sideways at a legible width rather than shrink to 4px labels.
+     The threshold is the authored viewBox width — anything wider than this cannot
+     hold its 8.5-9px labels once squashed into a phone column. */
+  const MINW = 520;
+  function wrapDiagram(el, min){
+    if (el.parentNode.classList.contains('dscroll')) return;
+    const box = document.createElement('div');
+    box.className = 'dscroll wide';
+    box.style.setProperty('--dmin', min + 'px');
+    el.parentNode.insertBefore(box, el);
+    box.appendChild(el);
+    const hint = document.createElement('span');
+    hint.className = 'dhint';
+    hint.textContent = 'scroll the diagram sideways \u2192';
+    box.parentNode.insertBefore(hint, box.nextSibling);
+  }
+  function measureAndWrap(){
+    if (!NARROW.matches) return;
+    document.querySelectorAll('svg[viewBox]').forEach(sv => {
+      const vb = sv.viewBox.baseVal;
+      if (!vb || vb.width <= MINW) return;
+      const host = sv.parentNode;
+      if (host && host.nodeType === 1 && !host.classList.contains('dscroll')) wrapDiagram(host, Math.round(vb.width * 0.8));
+    });
+    document.querySelectorAll('canvas[width]').forEach(cv => {
+      if (+cv.getAttribute('width') <= MINW) return;
+      if (!cv.parentNode.classList.contains('dscroll')) wrapDiagram(cv, Math.round(+cv.getAttribute('width') * 0.55));
+    });
+    scheduleFit(true);
+  }
+  // diagrams are drawn by their own IIFEs above, so measure after they have run
+  requestAnimationFrame(() => requestAnimationFrame(measureAndWrap));
+  NARROW.addEventListener('change', measureAndWrap);
+  document.addEventListener('click', () => requestAnimationFrame(measureAndWrap), true);
 })();
 
 // Re-fit after first paint, once the real font has resolved, whenever a widget
