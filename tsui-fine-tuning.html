@@ -1630,6 +1630,70 @@ function runThemeHooks(){
 }
 const svg = (w, h, inner, pad) => '<svg viewBox="' + (pad ? -pad : 0) + ' ' + (pad ? -pad : 0) + ' ' +
   (w + (pad ? pad * 2 : 0)) + ' ' + (h + (pad ? pad * 2 : 0)) + '" role="img">' + inner + '</svg>';
+// ---- keeping labels inside their boxes -------------------------------------
+// Every diagram below computes its geometry by hand, in user units, against the
+// width the author's monospace happened to have. But --mono leads with
+// 'JetBrains Mono' and this page never ships it: a viewer who HAS that font
+// renders every label wider than the geometry assumed, and since svg{overflow:
+// visible} the overspill paints on top of the prose underneath rather than
+// being clipped. Hand-tuning coordinates only moves the bug to the next font,
+// so instead measure after paint and adapt, in two passes:
+//   1. a label overrunning the padded panel it sits in shrinks just enough to fit
+//   2. anything still outside the viewBox makes the viewBox grow to cover it
+// font-size is a presentation attribute in USER units, so growing the box never
+// re-widens the text: both passes converge in one frame, and nothing is clipped.
+const FIT_PAD = 6, FIT_MIN_SCALE = 0.8;
+
+function shrinkTextIntoPanels(el){
+  const panels = [...el.querySelectorAll('rect')]
+    .filter(r => /inset|svgBox|panel/.test(r.getAttribute('fill') || ''))
+    .map(r => r.getBoundingClientRect())
+    .filter(b => b.width > 120 && b.height > 40);
+  if (!panels.length) return;
+  el.querySelectorAll('text').forEach(t => {
+    const fs0 = +(t.dataset.fs0 || t.getAttribute('font-size') || 0);
+    if (!fs0) return;
+    t.dataset.fs0 = fs0;
+    t.setAttribute('font-size', fs0);            // always measure from the original
+    const tb = t.getBoundingClientRect();
+    if (!tb.width) return;
+    let host = null;                             // tightest panel that really contains it
+    panels.forEach(b => {
+      if (b.left <= tb.left - FIT_PAD && b.top <= tb.top && b.bottom >= tb.bottom && b.right > tb.left)
+        if (!host || b.width * b.height < host.width * host.height) host = b;
+    });
+    if (!host) return;
+    const avail = host.right - FIT_PAD - tb.left;
+    if (avail <= 0 || tb.width <= avail) return;
+    t.setAttribute('font-size', (fs0 * Math.max(avail / tb.width, FIT_MIN_SCALE)).toFixed(2));
+  });
+}
+
+function fitViewBox(el){
+  let bb; try { bb = el.getBBox(); } catch (err) { return; }   // not rendered yet
+  if (!bb.width || !bb.height) return;
+  const vb = el.viewBox.baseVal;
+  const x0 = Math.min(vb.x, bb.x - FIT_PAD), y0 = Math.min(vb.y, bb.y - FIT_PAD);
+  const x1 = Math.max(vb.x + vb.width,  bb.x + bb.width  + FIT_PAD);
+  const y1 = Math.max(vb.y + vb.height, bb.y + bb.height + FIT_PAD);
+  if (x0 === vb.x && y0 === vb.y && x1 === vb.x + vb.width && y1 === vb.y + vb.height) return;
+  el.setAttribute('viewBox', x0 + ' ' + y0 + ' ' + (x1 - x0) + ' ' + (y1 - y0));
+}
+
+const fitDirty = new Set();
+let fitQueued = false, fitEverything = false;
+function fitRun(){
+  fitQueued = false;
+  const targets = fitEverything ? document.querySelectorAll('svg[viewBox]') : fitDirty;
+  fitEverything = false;
+  targets.forEach(el => { shrinkTextIntoPanels(el); fitViewBox(el); });
+  fitDirty.clear();
+}
+function scheduleFit(all){
+  if (all === true) fitEverything = true;
+  if (!fitQueued){ fitQueued = true; requestAnimationFrame(fitRun); }
+}
+
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const gaussFrom = r => () => { let u = 0, v = 0; while (!u) u = r(); while (!v) v = r();
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
@@ -3121,4 +3185,27 @@ const MEASURED = {"small":{"name":"GPT-2 small","params":"124M","dim":3072,"nlay
       draw(); }));
   themeHooks.push(draw); draw();
 })();
+
+// Re-fit after first paint, once the real font has resolved, whenever a widget
+// redraws, and whenever a click changes depth or flips a toggle. The observer
+// watches childList only, so the passes' own attribute writes cannot re-trigger
+// it; redraws mark just their own diagram dirty, keeping animation cheap.
+scheduleFit(true);
+if (document.fonts){
+  document.fonts.ready.then(() => scheduleFit(true));
+  // A host page (claude.ai ships JetBrains Mono) can load the very font --mono
+  // asks for long after first paint, silently rewidening every label.
+  document.fonts.addEventListener('loadingdone', () => scheduleFit(true));
+}
+new MutationObserver(muts => {
+  for (const m of muts){
+    const n = m.target.nodeType === 1 ? m.target : m.target.parentElement;
+    const host = n && n.closest ? n.closest('svg[viewBox]') : null;
+    if (host) fitDirty.add(host); else fitEverything = true;
+  }
+  scheduleFit();
+}).observe(document.documentElement, { childList: true, subtree: true });  // documentElement, not body: catches a stylesheet injected into <head>
+document.addEventListener('click', () => scheduleFit(true), true);
+window.addEventListener('resize', () => scheduleFit(true));
+themeHooks.push(() => scheduleFit(true));
 </script>
