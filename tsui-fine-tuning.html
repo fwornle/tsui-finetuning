@@ -1631,13 +1631,16 @@ function runThemeHooks(){
 const svg = (w, h, inner, pad) => '<svg viewBox="' + (pad ? -pad : 0) + ' ' + (pad ? -pad : 0) + ' ' +
   (w + (pad ? pad * 2 : 0)) + ' ' + (h + (pad ? pad * 2 : 0)) + '" role="img">' + inner + '</svg>';
 // ---- keeping labels inside their boxes -------------------------------------
-// Every diagram below computes its geometry by hand, in user units, against the
-// width the author's monospace happened to have. But --mono leads with
-// 'JetBrains Mono' and this page never ships it: a viewer who HAS that font
-// renders every label wider than the geometry assumed, and since svg{overflow:
-// visible} the overspill paints on top of the prose underneath rather than
-// being clipped. Hand-tuning coordinates only moves the bug to the next font,
-// so instead measure after paint and adapt, in two passes:
+// Every diagram below puts its labels at hand-computed coordinates, and some of
+// them simply do not fit. Measured in the rendered DOM at depth 3, with this
+// page's own JetBrains Mono loaded, nine labels sat outside their own <svg>
+// box: the axis captions under the both-ends diagram by 22px — landing on the
+// paragraph beneath — and "768 x 3072" by 26px. Because svg{overflow:visible}
+// that overspill paints over neighbouring prose instead of being clipped.
+// Which labels overflow shifts with the font actually in use (the fallback
+// stack and JetBrains Mono disagree, and so does the window before a web font
+// arrives), so tuning coordinates fixes one rendering and breaks the next.
+// Measure after paint and adapt instead, in two passes:
 //   1. a label overrunning the padded panel it sits in shrinks just enough to fit
 //   2. anything still outside the viewBox makes the viewBox grow to cover it
 // font-size is a presentation attribute in USER units, so growing the box never
@@ -3193,8 +3196,8 @@ const MEASURED = {"small":{"name":"GPT-2 small","params":"124M","dim":3072,"nlay
 scheduleFit(true);
 if (document.fonts){
   document.fonts.ready.then(() => scheduleFit(true));
-  // A host page (claude.ai ships JetBrains Mono) can load the very font --mono
-  // asks for long after first paint, silently rewidening every label.
+  // A web font named by --mono can arrive long after first paint, resizing
+  // every label at once — in either direction.
   document.fonts.addEventListener('loadingdone', () => scheduleFit(true));
 }
 new MutationObserver(muts => {
