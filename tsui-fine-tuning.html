@@ -2695,7 +2695,11 @@ if ('IntersectionObserver' in window && !RM){
     groups.forEach(gr => {
       const items = A.filter(m => gr.ids.indexOf(m.id) >= 0);
       const gh = 44 + Math.ceil(items.length / 2) * 42;
-      g += '<rect x="' + (ox + 46) + '" y="' + gr.y + '" width="' + (bw - 60) + '" height="' + gh +
+      /* The two columns of matrix chips start at ox+62 and ox+220 and are 146 wide,
+         so they reach ox+366. The group box starts at ox+46, which left them 8 units
+         short of enclosing the right-hand column: W_K, W_O and W_down visibly stuck
+         out through its edge. 336 = 16 padding + 146 + 12 gutter + 146 + 16 padding. */
+      g += '<rect x="' + (ox + 46) + '" y="' + gr.y + '" width="' + (bw - 36) + '" height="' + gh +
         '" rx="8" fill="var(--svgBox)" stroke="var(--line2)" stroke-width="1"/>';
       g += '<text x="' + (ox + 60) + '" y="' + (gr.y + 20) + '" font-size="9.5" letter-spacing="1.1" fill="var(--faint)">' + gr.t + '</text>';
       g += '<line x1="' + (ox + 22) + '" y1="' + (gr.y + gh/2) + '" x2="' + (ox + 46) + '" y2="' + (gr.y + gh/2) +
