@@ -1673,12 +1673,39 @@ function shrinkTextIntoPanels(el){
 }
 
 function fitViewBox(el){
-  let bb; try { bb = el.getBBox(); } catch (err) { return; }   // not rendered yet
-  if (!bb.width || !bb.height) return;
   const vb = el.viewBox.baseVal;
-  const x0 = Math.min(vb.x, bb.x - FIT_PAD), y0 = Math.min(vb.y, bb.y - FIT_PAD);
-  const x1 = Math.max(vb.x + vb.width,  bb.x + bb.width  + FIT_PAD);
-  const y1 = Math.max(vb.y + vb.height, bb.y + bb.height + FIT_PAD);
+  const box = el.getBoundingClientRect();
+  if (!vb.width || !box.width) return;
+  const scale = box.width / vb.width;                  // uniform: width:100% + height:auto
+  if (!scale || !isFinite(scale)) return;
+  // Always measure against the box the diagram was authored with, never the one a
+  // previous pass left behind, so this can give space back as well as take it.
+  const vb0 = (el.dataset.vb0 || [vb.x, vb.y, vb.width, vb.height].join(' ')).split(' ').map(Number);
+  el.dataset.vb0 = vb0.join(' ');
+  let x0 = vb0[0], y0 = vb0[1], x1 = vb0[0] + vb0[2], y1 = vb0[1] + vb0[3];
+  // Walk the painted leaves rather than calling getBBox() on the root: getBBox
+  // ignores clip-path, so one diagram that draws huge contour ellipses inside a
+  // clipped group grew its box to the full size of what the clip hides — four
+  // times too tall, the content shoved to the bottom of a field of white. Ink
+  // inside a clipped subtree cannot spill, since the clip is already in the box.
+  // Text only. A label pushed outside its box lands on the prose and has to be
+  // readable, so the box grows for it; a shape drawn past the edge is the
+  // diagram's own doing, and growing the box for one stray line rescaled the
+  // whole panel. Shapes are kept inside by fixing their geometry instead.
+  el.querySelectorAll('text').forEach(node => {
+    if (node.closest('defs,clipPath,mask,pattern,marker,symbol')) return;
+    if (node.parentElement !== el && node.closest('[clip-path]')) return;
+    const cs = getComputedStyle(node);
+    if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) return;
+    const r = node.getBoundingClientRect();
+    if (!r.width && !r.height) return;
+    const ax = vb.x + (r.left - box.left) / scale, bx = vb.x + (r.right - box.left) / scale;
+    const ay = vb.y + (r.top - box.top) / scale,   by = vb.y + (r.bottom - box.top) / scale;
+    if (ax - FIT_PAD < x0) x0 = ax - FIT_PAD;
+    if (ay - FIT_PAD < y0) y0 = ay - FIT_PAD;
+    if (bx + FIT_PAD > x1) x1 = bx + FIT_PAD;
+    if (by + FIT_PAD > y1) y1 = by + FIT_PAD;
+  });
   if (x0 === vb.x && y0 === vb.y && x1 === vb.x + vb.width && y1 === vb.y + vb.height) return;
   el.setAttribute('viewBox', x0 + ' ' + y0 + ' ' + (x1 - x0) + ' ' + (y1 - y0));
 }
@@ -2118,7 +2145,12 @@ if ('IntersectionObserver' in window && !RM){
       g += '<text x="' + (X0 - 8) + '" y="' + (sy(v) + 3.5) + '" text-anchor="end" font-size="9" fill="var(--faint)">' + v.toFixed(2) + '</text>';
     }
     /* constraint line, drawn across the plot */
-    const t0 = (yr[0] - 0) / U[1], t1 = (yr[1] - 0) / U[1];
+    /* Clamp along BOTH axes. Solving for the y-range alone let the line run to
+       x = 2.2 on a plot that ends at 1.16 — some 460 user units past the right
+       edge, painted outside the card because svg{overflow:visible}. */
+    const tY = [(yr[0] - 0) / U[1], (yr[1] - 0) / U[1]].sort((a, b) => a - b);
+    const tX = [xr[0] / U[0], xr[1] / U[0]].sort((a, b) => a - b);
+    const t0 = Math.max(tY[0], tX[0]), t1 = Math.min(tY[1], tX[1]);
     g += '<line x1="' + sx(t0*U[0]) + '" y1="' + sy(t0*U[1]) + '" x2="' + sx(t1*U[0]) + '" y2="' + sy(t1*U[1]) +
       '" stroke="var(--pro)" stroke-width="2" stroke-dasharray="7 5"/>';
     g += '<text x="' + (sx(0.92*U[0]) + 10) + '" y="' + (sy(0.92*U[1]) - 6) + '" font-size="10" font-weight="700" fill="var(--pro)">Δ·k = 0</text>';
