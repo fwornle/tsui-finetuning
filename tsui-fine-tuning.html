@@ -776,8 +776,8 @@ W  ←  W − η · ∂L/∂W          <span class="cm">η ≈ 10⁻⁵ , repeat
     <p>A staircase does not just make the solve fast. It makes the <em>leftover</em> visible and countable. Tsui's
     complaint about the textbook approach is not that it is slow — it is that it collapses to one arbitrary solution
     and throws the rest away, so you never find out that a different solution with identical performance would have
-    been less fragile. Section 06 measures that gap on a real GPT-2 layer: choosing badly within the freedom leaks
-    <b>7.9–11.4×</b> more onto knowledge you never sampled, at identical edit accuracy.</p>
+    been less fragile. Section 06 measures that gap on real layers of three models: choosing badly within the freedom
+    leaks <b>6.6–23.2×</b> more onto knowledge you never sampled, at identical edit accuracy.</p>
   </div>
 
   <div class="detail">
@@ -1229,7 +1229,7 @@ Q  ↔  <b class="oo">E[g gᵀ]</b>                 <span class="cm">K-FAC outpu
     almost always explained as a regulariser that protects old knowledge. It is doing something more specific than
     that: <strong>it is the selection rule within the leftover freedom.</strong> Strip it out and replace it with a
     plain pseudo-inverse and you still satisfy every constraint exactly, you still install every fact, and — measured on
-    GPT-2 three panels below — you leak <b>7.9–11.4×</b> as much onto knowledge you never sampled. That is Tsui's entire argument about the separation principle,
+    three models a few panels below — you leak <b>6.6–23.2×</b> as much onto knowledge you never sampled. That is Tsui's entire argument about the separation principle,
     arrived at independently, in a different decade, by people fixing a different bug.</p>
   </div>
 
@@ -1566,7 +1566,7 @@ minimise  tr( <b class="oo">Q</b> Δ <b class="pp">C</b> Δᵀ )   subject to   
   <div class="verdict">
     <h3>Choose deliberately within the leftover freedom <span class="pill done">already done · unnamed</span></h3>
     <p>I went in expecting this to be the open one. It is not — but it is worth far more than I thought. On a real
-    GPT-2 layer the choice within the freedom is worth <b>7.9–11.4× in leakage</b> onto unsampled knowledge (6.6–11.9× on
+    transformer layer the choice within the freedom is worth <b>7.9–11.4× in leakage</b> onto unsampled knowledge on GPT-2 small (6.6–11.9× on
     GPT-2 XL, <b>8.5–23.2×</b> on GPT-J 6B), at identical edit accuracy, and the multiplier is the anisotropy of the key Gramian, whose participation
     ratio is 27.5 of 3072, 66.9 of 6400 and 19.8 of 16384 at the layers MEMIT actually edits.
     The choice is nonetheless already being made correctly: MEMIT's covariance term <em>is</em> the
