@@ -50,22 +50,34 @@ Headline: MEMIT's `K₀K₀ᵀ` covariance term is worth **7.9–11.4×** (small
 Participation ratio 17.5–27.5 of 3072 and 30.8–66.9 of 6400 → 0.57–0.90% vs
 0.48–1.05% of directions. Scale-invariant across a 12× parameter gap.
 
-## Measurement FAILED — GPT-J 6B
+## GPT-J 6B — completed, and not yet on the page
 
-`measure_gptj.py` started and was killed with no traceback ⇒ out of memory.
-Budget was ~20 GB (12 GB fp16 weights + 6 GB of three 16384² float64 Gramians +
-2.2 GB keys) on a 36 GB machine. Two likely contributors:
+The first attempt was OOM-killed. A second, chained run finished on 2026-09-27
+at 14:01 and wrote `measure_gptj.json` (log in `measure_gptj.log`): layers 5, 8
+and 20, key dimension 16384, 17.1 samples per key dimension.
 
-1. the `except` fallback can load the 23 GB fp32 checkpoint — both revisions had
-   landed in the cache, which is how we know it fired. Remove the fallback and
-   pin `revision="float16"` so a retry cannot silently pull fp32;
-2. three simultaneous 16384² float64 Gramians. Fix: one layer per sweep, or
-   accumulate in float32 (3 GB), or drop to 2 layers.
+| layer | MEMIT covariance worth (rms) | (max) | participation ratio | top direction |
+| --- | --- | --- | --- | --- |
+| 5  | 23.18x | 4.90x | 19.8 of 16384  | 22.4% |
+| 8  | 17.73x | 4.24x | 27.7 of 16384  | 18.9% |
+| 20 |  8.50x | 3.31x | 255.1 of 16384 |  5.3% |
 
-Nothing about GPT-J is in the published page, so its absence breaks nothing.
-Worth weighing before spending ~90 minutes on a retry: **GPT-2 XL already
-answered the scaling question, and it is the model MEMIT itself was benchmarked
-on.** GPT-J would be a third point, not a missing one.
+So **8.5–23.2x** against 7.9–11.4x on GPT-2 small and 6.6–11.9x on GPT-2 XL:
+the effect does not wash out at 6B, and at the two layers inside the editing
+range it is markedly larger. Layer 20 is the outlier in the other direction —
+participation ratio 255 rather than ~20, an order of magnitude less anisotropic,
+and correspondingly less to gain.
+
+**None of this is on the published page**, which still reports two models. Adding
+a third is a change to the argument, not a typo fix, so it is left for a
+deliberate decision.
+
+One caveat on provenance, because it affects how much the numbers can be leaned
+on: the GPT-J weights were deleted from the HF cache at about 12:45 while this
+run was still going. It survived only because a deleted file's inode stays alive
+while a process still has it mapped. The run was already past loading, and its
+own log shows the sweep continuing normally to completion, but the tidy thing
+for a rerun is to re-download first.
 
 ## Disk note
 

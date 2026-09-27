@@ -1,0 +1,77 @@
+chunk cap added
+prerequisites ready:
+downloaded (float16) in 725s | layers 28 d_model 4096 d_ff 16384 | params 6.05B
+mlp module: GPTJMLP | children: ['fc_in', 'fc_out', 'act', 'dropout']
+added: 45 | total chars: 1983697 | approx tokens: 495924
+=== starting GPT-J measurement ===
+EleutherAI/gpt-j-6b on mps: 28 layers, key dim 16384, value dim 4096, fp16
+capping 869 chunks to 760 to bound runtime
+tokens 445251 | chunks 760 -> fit 547 / held 213 | samples per key dimension: 17.1
+  fit 0/547  10s elapsed, ~5347s left
+  fit 20/547  182s elapsed, ~4798s left
+  fit 40/547  414s elapsed, ~5250s left
+  fit 60/547  628s elapsed, ~5093s left
+  fit 80/547  996s elapsed, ~5812s left
+  fit 100/547  1395s elapsed, ~6234s left
+  fit 120/547  1527s elapsed, ~5435s left
+  fit 140/547  1662s elapsed, ~4832s left
+  fit 160/547  1816s elapsed, ~4392s left
+  fit 180/547  1973s elapsed, ~4024s left
+  fit 200/547  2187s elapsed, ~3794s left
+  fit 220/547  2358s elapsed, ~3505s left
+  fit 240/547  2517s elapsed, ~3220s left
+  fit 260/547  2625s elapsed, ~2898s left
+  fit 280/547  2762s elapsed, ~2633s left
+  fit 300/547  2903s elapsed, ~2390s left
+  fit 320/547  2997s elapsed, ~2126s left
+  fit 340/547  3125s elapsed, ~1903s left
+  fit 360/547  3263s elapsed, ~1695s left
+  fit 380/547  3399s elapsed, ~1494s left
+  fit 400/547  3522s elapsed, ~1294s left
+  fit 420/547  3635s elapsed, ~1099s left
+  fit 440/547  3741s elapsed, ~910s left
+  fit 460/547  3901s elapsed, ~738s left
+  fit 480/547  4044s elapsed, ~564s left
+  fit 500/547  4189s elapsed, ~394s left
+  fit 520/547  4330s elapsed, ~225s left
+  fit 540/547  4473s elapsed, ~58s left
+  held 0/213  11s elapsed, ~2438s left
+  held 20/213  177s elapsed, ~1705s left
+  held 40/213  342s elapsed, ~1480s left
+  held 60/213  471s elapsed, ~1201s left
+  held 80/213  615s elapsed, ~1023s left
+  held 100/213  720s elapsed, ~813s left
+  held 120/213  869s elapsed, ~673s left
+  held 140/213  1049s elapsed, ~547s left
+  held 160/213  1180s elapsed, ~391s left
+  held 180/213  1327s elapsed, ~243s left
+  held 200/213  1450s elapsed, ~94s left
+model released; starting linear algebra
+
+=== layer 5 ===
+  eigvalsh 295s
+  A lam=0.001  euclid/gram  max   3.56x   rms   9.07x  (fit 1.3e-09, angle 90 deg, 55s)
+  A lam=0.1    euclid/gram  max   3.41x   rms   9.08x  (fit 1.3e-09, angle 90 deg, 55s)
+  B lam=0.1    identity/covariance  max   4.90x   rms  23.18x  (rel. edit error cov 0.0000 / eye 0.0000, 53s)
+  B lam=1      identity/covariance  max   4.90x   rms  23.18x  (rel. edit error cov 0.0001 / eye 0.0001, 55s)
+  spectrum: eff.rank 19.8 of 16384 | top 22.4% | 25 dirs hold 29.9% | kappa_99 31103 | coherence 0.257
+
+=== layer 8 ===
+  eigvalsh 310s
+  A lam=0.001  euclid/gram  max   1.96x   rms   7.21x  (fit 7.9e-10, angle 90 deg, 59s)
+  A lam=0.1    euclid/gram  max   2.13x   rms   7.57x  (fit 7.9e-10, angle 90 deg, 60s)
+  B lam=0.1    identity/covariance  max   4.24x   rms  17.73x  (rel. edit error cov 0.0000 / eye 0.0000, 52s)
+  B lam=1      identity/covariance  max   4.24x   rms  17.73x  (rel. edit error cov 0.0001 / eye 0.0001, 52s)
+  spectrum: eff.rank 27.7 of 16384 | top 18.9% | 25 dirs hold 26.9% | kappa_99 24297 | coherence 0.193
+
+=== layer 20 ===
+  eigvalsh 299s
+  A lam=0.001  euclid/gram  max   2.41x   rms   5.45x  (fit 5.7e-10, angle 90 deg, 60s)
+  A lam=0.1    euclid/gram  max   2.29x   rms   5.52x  (fit 5.7e-10, angle 90 deg, 59s)
+  B lam=0.1    identity/covariance  max   3.31x   rms   8.50x  (rel. edit error cov 0.0000 / eye 0.0000, 62s)
+  B lam=1      identity/covariance  max   3.31x   rms   8.50x  (rel. edit error cov 0.0002 / eye 0.0001, 52s)
+  spectrum: eff.rank 255.1 of 16384 | top 5.3% | 25 dirs hold 17.6% | kappa_99 5250 | coherence 0.072
+
+wrote measure_gptj.json
+
+[exited with code 0]
