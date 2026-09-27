@@ -1651,7 +1651,7 @@ function shrinkTextIntoPanels(el){
   const panels = [...el.querySelectorAll('rect')]
     .filter(r => /inset|svgBox|panel/.test(r.getAttribute('fill') || ''))
     .map(r => r.getBoundingClientRect())
-    .filter(b => b.width > 120 && b.height > 40);
+    .filter(b => b.width > 120 && b.height > 24);   // 24, not 40: a stage chip is ~30 high
   if (!panels.length) return;
   el.querySelectorAll('text').forEach(t => {
     const fs0 = +(t.dataset.fs0 || t.getAttribute('font-size') || 0);
@@ -2749,7 +2749,9 @@ if ('IntersectionObserver' in window && !RM){
   const TOKS = ['The', ' renal', ' cor', 'pus', 'cle', ' filters', ' blood', ' in', ' the'];
   const CANDS = [['ĠKid', .31], ['Ġblood', .19], ['Ġbody', .11], ['Ġneph', .02], ['Ġliver', .02]];
   const STAGES = [
-    {t:'1 · a sentence from your corpus', s:'tokenise'},
+    {t:'1 · a sentence', s:'tokenise'},   /* terse like its siblings: the full phrase
+                                            still reads out in the note below, and at
+                                            five chips across nothing longer fits */
     {t:'2 · forward pass', s:'predict the next token'},
     {t:'3 · the loss', s:'−log p of the token that actually came next'},
     {t:'4 · backward pass', s:'∂L/∂W for every matrix at once'},
